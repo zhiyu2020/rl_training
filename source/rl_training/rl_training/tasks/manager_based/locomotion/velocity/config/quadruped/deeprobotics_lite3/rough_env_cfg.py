@@ -59,7 +59,7 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Observations------------------------------
         self.observations.policy.base_lin_vel = None # type: ignore
-        self.observations.policy.height_scan = None # type: ignore
+        # self.observations.policy.height_scan = None # type: ignore
         self.observations.policy.base_ang_vel.scale = 0.25
         self.observations.policy.joint_pos.scale = 1.0
         self.observations.policy.joint_vel.scale = 0.05
@@ -103,23 +103,37 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.randomize_actuator_gains.params["asset_cfg"].joint_names = self.joint_names
 
         # set terrain generation probability to 0 for boxes and stairs
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.4
-        self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope"].proportion = 0.3
-        self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope_inv"].proportion = 0.3
-        self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.0
-        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.0
-        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.0
+        # 改动点是这个
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.2
+        self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope"].proportion = 0.2
+        self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope_inv"].proportion = 0.2
+        self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.2
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.1
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.1
+
+        # 把楼梯踏步高度缩小，Lite3 是小型机器人（默认 0.05~0.23m 太陡）
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range     = (0.03, 0.12)
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.03, 0.12)
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_width     = 0.3
+        self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_width = 0.3
+        # 方块的格子尺寸也按小机器人缩一下
+        self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.10)
+        self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_width        = 0.6
+
+        # 保留你原有的随机粗糙度设置
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step  = 0.01
         # scale down the terrains because the robot is small
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_width = 0.8
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # ------------------------------Rewards------------------------------
         self.rewards.action_rate_l2.weight = -0.1 #-0.02
         # self.rewards.smoothness_2.weight = -0.0075
 
-        self.rewards.base_height_l2.weight = -50.0
+        self.rewards.base_height_l2.weight = -5.0 #原 -50.0  楼梯上离地高度不可能恒定
         self.rewards.base_height_l2.params["target_height"] = 0.55
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
@@ -152,7 +166,7 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.contact_forces.weight = -1e-1 # -2e-2
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
-        self.rewards.lin_vel_z_l2.weight = -20.0 #-2.0
+        self.rewards.lin_vel_z_l2.weight = -2.0 #-2.0  原 -20.0  上下台阶必然有 z 速度
         self.rewards.ang_vel_xy_l2.weight = -0.25 # -0.05
 
         self.rewards.track_lin_vel_xy_exp.weight = 4.0
@@ -166,7 +180,7 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_deviation_l1.weight = -0.0
         self.rewards.joint_deviation_l1.params["asset_cfg"].joint_names = [".*HipX.*"]
         self.rewards.joint_power.weight = -8e-4
-        self.rewards.flat_orientation_l2.weight = -20.0
+        self.rewards.flat_orientation_l2.weight = -2.5 # 原 -20.0  上下台阶必然有 z 速度
 
         # add the following rewards to improve the gait
         self.rewards.feet_gait.weight = 0.5

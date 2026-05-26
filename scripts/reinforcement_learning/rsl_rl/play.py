@@ -25,6 +25,20 @@ from isaaclab.app import AppLauncher
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import cli_args
 
+draw_interface = None
+foot_ids = None
+phase_offsets = None
+cycle_time = None
+gait_span = None
+gait_psi = None
+gait_delta = None
+x_offset = None
+stance_span = None
+cmd_threshold = None
+stand_ref_z_offset = None
+cmd_hist = None
+act_hist = None
+VIS_ENABLED = True
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
@@ -115,7 +129,6 @@ from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,
     export_policy_as_jit,
     export_policy_as_onnx,
-    handle_deprecated_rsl_rl_cfg,
 )
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
@@ -132,8 +145,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else 50
 
     # handle deprecated configurations (convert old policy format to new actor/critic format)
-    agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, installed_version)
-
+    # agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, installed_version)
+    agent_cfg = agent_cfg
     # set the environment seed
     # note: certain randomizations occur in the environment initialization so we set the seed here
     env_cfg.seed = agent_cfg.seed
@@ -267,7 +280,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             obs, _, _, _ = env.step(actions)
 
         if (
-            VIS_ENABLEd
+            VIS_ENABLED
             and draw_interface is not None
             and foot_ids is not None
             and phase_offsets is not None

@@ -835,19 +835,19 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # env
-    decimation = 4
-    episode_length_s = 20.0
+    decimation = 4 # 策略推理 0.02s 50Hz
+    episode_length_s = 20.0 #  Episode_length_s 20s -> 1000 policy steps
     # simulation
     sim: SimulationCfg = SimulationCfg(
-        dt=1 / 200,
-        render_interval=decimation,
+        dt=1 / 200, # 0.005s
+        render_interval=decimation, # 0.02s
         physx=PhysxCfg(
             
              gpu_collision_stack_size=2**27,           # 134,217,728
         ),
     )
     # Scene settings
-    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5) # 并行环境
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
